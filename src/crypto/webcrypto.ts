@@ -3,7 +3,18 @@ import { chacha20poly1305 } from '@noble/ciphers/chacha'
 import { ECDSASigValue } from '@peculiar/asn1-ecc'
 import { AsnParser } from '@peculiar/asn1-schema'
 import type { webcrypto as WebCrypto } from 'crypto'
-import { webcrypto } from 'crypto'
+
+// Use globalThis.crypto in browser environments, Node.js webcrypto otherwise
+const webcrypto: WebCrypto.Crypto = (() => {
+	if(typeof globalThis !== 'undefined' && globalThis.crypto?.subtle) {
+		return globalThis.crypto as WebCrypto.Crypto
+	}
+
+	// Node.js fallback
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { webcrypto: nodeWebcrypto } = require('crypto')
+	return nodeWebcrypto
+})()
 import type { PublicKey as RSAPubKey } from 'micro-rsa-dsa-dh/rsa.js'
 import { PKCS1_KEM } from 'micro-rsa-dsa-dh/rsa.js'
 import type { AsymmetricCryptoAlgorithm, Crypto, SignatureAlgorithm } from '../types/crypto.ts'

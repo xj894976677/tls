@@ -467,14 +467,14 @@ export function makeTLSClient({
 			msg
 		)
 		if(
-			level === 'FATAL'
-			|| description === 'CLOSE_NOTIFY'
+			description === 'CLOSE_NOTIFY'
 		) {
-			end(
-				level === 'FATAL'
-					? new Error(`Fatal alert: ${description}`)
-					: undefined
-			)
+			// In TLS 1.3, CLOSE_NOTIFY is sent with level=FATAL (2),
+			// but per RFC 8446 it is always a non-error closure alert.
+			// Do not treat it as an error.
+			end(undefined)
+		} else if(level === 'FATAL') {
+			end(new Error(`Fatal alert: ${description}`))
 		}
 	}
 
